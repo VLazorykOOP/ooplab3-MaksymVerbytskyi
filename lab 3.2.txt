@@ -1,0 +1,184 @@
+  #include <iostream>
+
+  class Vector {
+  private:
+      short* data;
+      size_t size;
+      mutable int state;
+
+  public:
+
+      // Constructor вектор без параметрів
+      Vector() : size(1), state(0) {
+          data = new short[size];
+          if (!data) {
+              state = 1; // Недостатньо пам'яті
+          } else {
+              data[0] = 0;
+          }
+      }
+
+      // Constructor з одним параметром - розмір вектора
+      Vector(size_t n) : size(n), state(0) {
+          data = new short[size];
+          if (!data) {
+              state = 1;
+          } else {
+              for (size_t i = 0; i < size; ++i) {
+                  data[i] = 0;
+              }
+          }
+      }
+
+      // Constructor із двома параметрами - розмір вектора та значення ініціалізації
+      Vector(size_t n, short value) : size(n), state(0) {
+          data = new short[size];
+          if (!data) {
+              state = 1;
+          } else {
+              for (size_t i = 0; i < size; ++i) {
+                  data[i] = value;
+              }
+          }
+      }
+
+      // Конструктор копій
+      Vector(const Vector& other) : size(other.size), state(other.state) {
+          data = new short[size];
+          if (!data) {
+              state = 1; // insufficient memory
+          } else {
+              for (size_t i = 0; i < size; ++i) {
+                  data[i] = other.data[i];
+              }
+          }
+      }
+
+      // Операція присвоєння
+      Vector& operator=(const Vector& other) {
+          if (this != &other) {
+              delete[] data;
+              size = other.size;
+              state = other.state;
+              data = new short[size];
+              if (!data) {
+                  state = 1; // insufficient memory
+              } else {
+                  for (size_t i = 0; i < size; ++i) {
+                      data[i] = other.data[i];
+                  }
+              }
+          }
+          return *this;
+      }
+
+      // Деструктор
+      ~Vector() {
+          delete[] data;
+      }
+
+      // Функція для присвоєння елементу масиву
+      void setElement(size_t index, short value = 0) {
+          if (index < size) {
+              data[index] = value;
+              state = 0; // success
+          } else {
+              state = 2; // out of bounds
+          }
+      }
+
+      // Функція для отримання елементу масиву
+      short getElement(size_t index) const {
+          if (index < size) {
+              state = 0; // success
+              return data[index];
+          } else {
+              state = 2; // out of bounds
+              return 0;
+          }
+      }
+
+      // Функція для друку
+      void print() const {
+          for (size_t i = 0; i < size; ++i) {
+              std::cout << data[i] << " ";
+          }
+          std::cout << std::endl;
+      }
+
+      // Функція для додавання
+      Vector add(const Vector& other) const {
+          Vector result(size > other.size ? size : other.size);
+          for (size_t i = 0; i < result.size; ++i) {
+              result.setElement(i, getElement(i) + other.getElement(i));
+          }
+          return result;
+      }
+
+      // Функція для віднімання
+      Vector subtract(const Vector& other) const {
+          Vector result(size > other.size ? size : other.size);
+          for (size_t i = 0; i < result.size; ++i) {
+              result.setElement(i, getElement(i) - other.getElement(i));
+          }
+          return result;
+      }
+      Vector multiply(unsigned char value) const {
+          Vector result(size);
+          for (size_t i = 0; i < size; ++i) {
+              result.setElement(i, getElement(i) * value);
+          }
+          return result;
+      }
+
+      // Функція порівняння - більше
+      bool greaterThan(const Vector& other) const {
+          for (size_t i = 0; i < size; ++i) {
+              if (getElement(i) <= other.getElement(i)) {
+                  return false;
+              }
+          }
+          return true;
+      }
+
+      // Функція порівняння - нерівно
+      bool notEqual(const Vector& other) const {
+          for (size_t i = 0; i < size; ++i) {
+              if (getElement(i) != other.getElement(i)) {
+                  return true;
+              }
+          }
+          return false;
+      }
+
+      // Функція порівняння - рівно
+      bool equal(const Vector& other) const {
+          return !notEqual(other);
+      }
+
+      // Функція для отримання стану
+      int getState() const {
+          return state;
+      }
+
+  };
+
+  int main() {
+      // Приклад використання класу Vector
+      Vector v1;
+      Vector v2(7);
+      Vector v3(6, 11);
+      Vector v4 = v3; // Конструктор копій
+      Vector v5;
+      v5 = v3; // Операція присвоєння
+
+      // Додавання та віднімання
+      Vector sum = v3.add(v4);
+      v2.print();
+      v3.print();
+      v5.print();
+      sum.print();
+      Vector diff;
+      diff.print();
+    return 0;
+  }

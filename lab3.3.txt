@@ -1,0 +1,246 @@
+#include <iostream>
+
+class Matrix {
+private:
+    short* data;
+    size_t rows;
+    size_t cols;
+    mutable int state; // 0 - success, 1 - insufficient memory, 2 - out of bounds
+
+public:
+    // Конструктор без параметрів
+    Matrix() : rows(4), cols(4), state(0) {
+        allocateMemory();
+        initializeMatrix(0);
+    }
+
+    // Конструктор з одним параметром - розмір n матриці
+    Matrix(size_t n) : rows(n), cols(n), state(0) {
+        allocateMemory();
+        initializeMatrix(0);
+    }
+
+    // Конструктор із трьома параметрами - розміри матриці (n , m) та значення ініціалізації value
+    Matrix(size_t n, size_t m, short value) : rows(n), cols(m), state(0) {
+        allocateMemory();
+        initializeMatrix(value);
+    }
+
+    // Конструктор копій
+    Matrix(const Matrix& other) : rows(other.rows), cols(other.cols), state(other.state) {
+        allocateMemory();
+        for (size_t i = 0; i < rows * cols; ++i) {
+            data[i] = other.data[i];
+        }
+    }
+
+    // Операція присвоєння
+    Matrix& operator=(const Matrix& other) {
+        if (this != &other) {
+            delete[] data;
+            rows = other.rows;
+            cols = other.cols;
+            state = other.state;
+            allocateMemory();
+            for (size_t i = 0; i < rows * cols; ++i) {
+                data[i] = other.data[i];
+            }
+        }
+        return *this;
+    }
+
+    // Деструктор
+    ~Matrix() {
+        delete[] data;
+    }
+
+    // Функція для присвоювання елементу матриці
+    void setElement(size_t i, size_t j, short value = 0) {
+        if (i < rows && j < cols) {
+            data[i * cols + j] = value;
+            state = 0; // success
+        } else {
+            state = 2; // out of bounds
+        }
+    }
+
+    // Функція для отримання елементу матриці
+    short getElement(size_t i, size_t j) const {
+        if (i < rows && j < cols) {
+            state = 0; // success
+            return data[i * cols + j];
+        } else {
+            state = 2; // out of bounds
+            return 0;
+        }
+    }
+
+    // Функція для друку матриці
+    void print() const {
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                std::cout << data[i * cols + j] << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    // Функція для додавання матриць
+    Matrix add(const Matrix& other) const {
+        Matrix result(rows, cols, 0);
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                result.setElement(i, j, getElement(i, j) + other.getElement(i, j));
+            }
+        }
+        return result;
+    }
+
+    // Функція для віднімання матриць
+    Matrix subtract(const Matrix& other) const {
+        Matrix result(rows, cols, 0);
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                result.setElement(i, j, getElement(i, j) - other.getElement(i, j));
+            }
+        }
+        return result;
+    }
+
+    // Функція для множення матриць
+    Matrix multiply(const Matrix& other) const {
+        Matrix result(rows, other.cols, 0);
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < other.cols; ++j) {
+                for (size_t k = 0; k < cols; ++k) {
+                    result.setElement(i, j, result.getElement(i, j) + getElement(i, k) * other.getElement(k, j));
+                }
+            }
+        }
+        return result;
+    }
+
+    // Функція для множення матриці на скаляр
+    Matrix multiply(short scalar) const {
+        Matrix result(rows, cols, 0);
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                result.setElement(i, j, getElement(i, j) * scalar);
+            }
+        }
+        return result;
+    }
+
+    // Функція порівняння - більше
+    bool greaterThan(const Matrix& other) const {
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                if (getElement(i, j) <= other.getElement(i, j)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Функція порівняння - менше
+    bool lessThan(const Matrix& other) const {
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                if (getElement(i, j) >= other.getElement(i, j)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // Функція порівняння - нерівно
+    bool notEqual(const Matrix& other) const {
+        for (size_t i = 0; i < rows; ++i) {
+            for (size_t j = 0; j < cols; ++j) {
+                if (getElement(i, j) != other.getElement(i, j)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Функція для отримання стану
+    int getState() const {
+        return state;
+    }
+
+private:
+    // Виділення пам'яті для матриці
+    void allocateMemory() {
+        data = new short[rows * cols];
+        if (!data) {
+            state = 1; // insufficient memory
+        }
+    }
+
+    // Ініціалізація матриці значенням value
+    void initializeMatrix(short value) {
+        for (size_t i = 0; i < rows * cols; ++i) {
+            data[i] = value;
+        }
+    }
+};
+
+int main() {
+    // Приклад використання класу Matrix
+    Matrix m1;
+    Matrix m2(3);
+    Matrix m3(2, 3, 5);
+    Matrix m4 = m3; // Конструктор копій
+    Matrix m5;
+    m5 = m3; // Операція присвоєння
+
+    // Додавання, віднімання, множення
+    Matrix sum = m3.add(m4);
+    Matrix diff = m3.subtract(m4);
+    Matrix product = m3.multiply(m4);
+    Matrix scalarProduct = m3.multiply(2);
+
+    // Порівняння
+    bool greater = m3.greaterThan(m4);
+    bool less = m3.lessThan(m4);
+    bool notEqual = m3.notEqual(m4);
+
+    // Друкуємо результати
+    std::cout << "Matrix m1:" << std::endl;
+    m1.print();
+
+    std::cout << "\nMatrix m2:" << std::endl;
+    m2.print();
+
+    std::cout << "\nMatrix m3:" << std::endl;
+    m3.print();
+
+    std::cout << "\nMatrix m4:" << std::endl;
+    m4.print();
+
+    std::cout << "\nMatrix m5:" << std::endl;
+    m5.print();
+
+    std::cout << "\nSum of m3 and m4:" << std::endl;
+    sum.print();
+
+    std::cout << "\nDifference of m3 and m4:" << std::endl;
+    diff.print();
+
+    std::cout << "\nProduct of m3 and m4:" << std::endl;
+    product.print();
+
+    std::cout << "\nScalar product of m3 (multiplied by 2):" << std::endl;
+    scalarProduct.print();
+
+    std::cout << "\nComparison results:" << std::endl;
+    std::cout << "m3 greater than m4: " << std::boolalpha << greater << std::endl;
+    std::cout << "m3 less than m4: " << std::boolalpha << less << std::endl;
+    std::cout << "m3 not equal to m4: " << std::boolalpha << notEqual << std::endl;
+
+    return 0;
+}
